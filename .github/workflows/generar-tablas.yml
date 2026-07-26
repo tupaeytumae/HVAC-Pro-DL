@@ -23,14 +23,15 @@ jobs:
           pip install CoolProp
 
       - name: Comprobar archivos
-  run: |
-    pwd
-    ls -la
-    echo "========== generate_pt.py =========="
-    cat generate_pt.py
+        run: |
+          pwd
+          ls -la
+          echo "========== generate_pt.py =========="
+          cat generate_pt.py
 
-- name: Generar tablas
-  run: python generate_pt.py
+      - name: Generar tablas
+        run: |
+          python generate_pt.py
 
       - name: Subir cambios
         run: |
