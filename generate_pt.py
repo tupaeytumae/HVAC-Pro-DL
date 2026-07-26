@@ -7,7 +7,7 @@ from pathlib import Path
 import CoolProp
 from CoolProp.CoolProp import PropsSI
 
-FLUIDS = ["R407C", "R410A", "R32", "R134a", "R22", "R290", "R453A"]
+FLUIDS = ["R407C", "R410A", "R32", "R134a", "R22", "R290", ]
 T_MIN_C = -50.0
 T_MAX_LIMIT_C = 70.0
 STEP_C = 0.1
