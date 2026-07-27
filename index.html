@@ -125,6 +125,11 @@
       <div class="metric"><small>Salto térmico</small><strong id="dt">—</strong></div>
       <div class="metric"><small>Relación compresión</small><strong id="cr">—</strong></div>
     </div>
+    <div class="card" style="margin-top:16px;background:#f8fbff;border-color:#cfe0ff">
+      <h3 style="margin-top:0">Compatibilidad (motor de diagnóstico)</h3>
+      <div id="compatibility" class="note">Pendiente de evaluación...</div>
+    </div>
+
     <h3 id="diag"></h3>
     <div id="why" class="note" style="font-size:14px"></div>
     <h3>Comprobar ahora</h3>
@@ -141,6 +146,7 @@
 </div>
 
 <script src="./pt_data.js"></script>
+<script src="./diagnosis.js"></script>
 <script>
   const $ = id => document.getElementById(id);
   const DB = window.PT_DATABASE || null;
@@ -235,6 +241,16 @@
                (lp + DB.meta.atmospheric_pressure_bar);
     const approach = tc - to;
 
+    const diagnosisResults = Diagnostician.evaluate({
+      sh,
+      sc,
+      deltaT: dt,
+      evapDelta: tr - tev,
+      air
+    });
+
+    const bestDiagnosis = diagnosisResults[0];
+
     let diagnosis, reason, steps, level;
 
     if(air === "low"){
@@ -314,6 +330,11 @@
     output("sc",sc,"K");
     output("dt",dt,"K");
     output("cr",cr,"",2);
+
+    $("compatibility").innerHTML =
+      "<strong>"+bestDiagnosis.name+"</strong><br>" +
+      "Compatibilidad estimada: <strong>"+bestDiagnosis.score+"%</strong><br>" +
+      bestDiagnosis.reasons.join("<br>");
 
     $("diag").textContent = diagnosis;
     $("why").textContent = reason;
