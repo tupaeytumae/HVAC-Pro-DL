@@ -19,6 +19,11 @@ const diagnostics = Object.freeze([
   evaluateBalanced
 ]);
 
+export function selectDiagnosis(results) {
+  const matched = results.filter(result => result.matched);
+  return matched[0] || results.find(result => result.id === "BALANCED");
+}
+
 export function diagnose(measures, database, profileName = "unknown") {
   const calculations = calculate(measures, database);
   if (calculations === null) {
@@ -31,11 +36,12 @@ export function diagnose(measures, database, profileName = "unknown") {
     .map(diagnostic => diagnostic(measures, calculations, profile, evidence))
     .sort((left, right) => right.score - left.score);
   const undercharge = results.find(result => result.id === "UNDERCHARGE");
+  const diagnosis = selectDiagnosis(results);
 
   return {
     calculations,
     evidence,
-    diagnosis: results[0],
+    diagnosis,
     compatibility: undercharge.compatibility,
     results,
     profile

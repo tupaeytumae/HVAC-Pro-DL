@@ -1,4 +1,4 @@
-const CACHE_NAME = "hvac-pro-dl-v4";
+const CACHE_NAME = "hvac-pro-dl-v6";
 const APP_SHELL = [
   "./",
   "./index.html",

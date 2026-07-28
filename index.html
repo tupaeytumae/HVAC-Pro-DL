@@ -80,6 +80,14 @@
       <label>Modo
         <select id="mode"><option value="cool">Frío</option><option value="heat">Calor</option></select>
       </label>
+      <label>Dispositivo de expansión
+        <select id="expansion">
+          <option value="unknown">Desconocido</option>
+          <option value="capillary">Capilar</option>
+          <option value="txv">TXV</option>
+          <option value="eev">EEV</option>
+        </select>
+      </label>
       <label>Baja
         <input id="lp" type="number" step="0.01" inputmode="decimal" placeholder="bar(g)">
       </label>
@@ -194,6 +202,7 @@
 
     const ref = $("ref").value;
     const mode = $("mode").value;
+    const profileName = $("expansion").value;
     const air = $("air").value;
     const lp = num("lp"), hp = num("hp"), ts = num("ts"), tl = num("tl");
     const tr = num("tr"), ti = num("ti"), to = num("to");
@@ -222,7 +231,7 @@
       tr,
       ti,
       to
-    }, DB);
+    }, DB, profileName);
 
     if(result === null){
       alert(`Presión fuera del rango de tabla disponible para ${ref}.`);
