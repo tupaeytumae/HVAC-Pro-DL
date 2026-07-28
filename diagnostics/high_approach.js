@@ -1,5 +1,5 @@
-export function evaluateHighApproach(measures, calculations, profile) {
-  const matched = calculations.approach > profile.tolerances.highApproach;
+export function evaluateHighApproach(_measures, calculations, profile, evidence) {
+  const matched = evidence.APPROACH.state === "HIGH";
 
   return {
     id: "HIGH_APPROACH",
@@ -10,6 +10,7 @@ export function evaluateHighApproach(measures, calculations, profile) {
       ? ["Diferencia alta entre condensación y temperatura exterior"]
       : [],
     steps: [
+      `Confirmar una aproximación medida de ${calculations.approach.toFixed(1)} K`,
       "Limpiar batería exterior",
       "Comprobar ventiladores y recirculación",
       "Verificar sobrecarga o gases no condensables",

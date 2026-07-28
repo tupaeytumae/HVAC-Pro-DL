@@ -1,7 +1,7 @@
-export function evaluateOverfeed(measures, calculations, profile) {
+export function evaluateOverfeed(_measures, calculations, profile, evidence) {
   const matched =
-    calculations.sh < profile.tolerances.lowSuperheat &&
-    calculations.sc > profile.tolerances.highSubcooling;
+    evidence.SH.state === "LOW" &&
+    evidence.SC.state === "HIGH";
 
   return {
     id: "OVERFEED",
@@ -12,6 +12,7 @@ export function evaluateOverfeed(measures, calculations, profile) {
       ? ["Recalentamiento bajo", "Subenfriamiento alto"]
       : [],
     steps: [
+      `Confirmar SH ${calculations.sh.toFixed(1)} K y SC ${calculations.sc.toFixed(1)} K antes de intervenir`,
       "Confirmar caudal de aire",
       "Comprobar carga por peso",
       "Revisar control de expansión",

@@ -4,6 +4,7 @@ import test from "node:test";
 import { diagnose, selectDiagnosis } from "../engine/diagnosis.js";
 import { buildEvidence } from "../engine/evidence.js";
 import { evaluateBalanced } from "../diagnostics/balanced.js";
+import { evaluateCharge } from "../diagnostics/charge.js";
 import { getProfile } from "../profiles/index.js";
 
 const database = {
@@ -21,7 +22,6 @@ const database = {
 function measures(overrides = {}) {
   return {
     ref: "TEST",
-    mode: "cool",
     air: "normal",
     lp: 2,
     hp: 4,
@@ -74,6 +74,83 @@ test("the selected expansion device loads its corresponding profile", () => {
   }
 });
 
+test("each expansion profile produces a distinct charge assessment", () => {
+  const scenarios = [
+    { sh: 11, sc: 2 },
+    { sh: 9, sc: 2 }
+  ];
+  const expected = {
+    unknown: ["INCONCLUSIVE", "INCONCLUSIVE"],
+    capillary: ["NORMAL", "NORMAL"],
+    txv: ["UNDERCHARGE", "INCONCLUSIVE"],
+    eev: ["UNDERCHARGE", "UNDERCHARGE"]
+  };
+
+  for (const [profileName, strengths] of Object.entries(expected)) {
+    const profile = getProfile(profileName);
+    const actual = scenarios.map(calculations => {
+      const completeCalculations = {
+        ...calculations,
+        deltaT: 10,
+        approach: 10,
+        cr: 2
+      };
+      const evidence = buildEvidence(
+        completeCalculations,
+        profile,
+        { air: "normal" }
+      );
+
+      return evaluateCharge(
+        { air: "normal" },
+        completeCalculations,
+        profile,
+        evidence
+      ).state;
+    });
+
+    assert.deepEqual(actual, strengths);
+  }
+});
+
+test("charge assessment distinguishes shortage, excess and restriction", () => {
+  const profile = getProfile("unknown");
+  const scenarios = [
+    [{ sh: 14, sc: 2 }, "UNDERCHARGE"],
+    [{ sh: 2, sc: 9 }, "OVERCHARGE"],
+    [{ sh: 14, sc: 6 }, "RESTRICTION"],
+    [{ sh: 7, sc: 5 }, "NORMAL"]
+  ];
+
+  for (const [values, expectedState] of scenarios) {
+    const calculations = {
+      ...values,
+      deltaT: 10,
+      approach: 10,
+      cr: 2
+    };
+    const evidence = buildEvidence(calculations, profile, { air: "normal" });
+    const charge = evaluateCharge(
+      { air: "normal" },
+      calculations,
+      profile,
+      evidence
+    );
+
+    assert.equal(charge.state, expectedState);
+  }
+});
+
+test("unchecked airflow remains unknown and prevents a stable result", () => {
+  const result = diagnose(measures({ air: "unknown" }), database);
+
+  assert.equal(result.evidence.AIRFLOW.state, "UNKNOWN");
+  assert.equal(result.diagnosis.id, "BALANCED");
+  assert.equal(result.diagnosis.matched, false);
+  assert.equal(result.diagnosis.level, "warn");
+  assert.equal(result.diagnosis.name, "Sin patrón concluyente");
+});
+
 test("an isolated anomaly cannot be stable", () => {
   const result = diagnose(measures({ ts: 15, tl: 0 }), database);
 
@@ -91,6 +168,8 @@ test("a matched specific diagnosis wins", () => {
   assert.equal(result.evidence.SC.state, "LOW");
   assert.equal(result.diagnosis.id, "UNDERCHARGE");
   assert.equal(result.diagnosis.matched, true);
+  assert.equal(result.charge.state, "UNDERCHARGE");
+  assert.equal(result.checks.length, result.charge.checks.length);
 });
 
 test("stable always implies that every evidence is normal", () => {

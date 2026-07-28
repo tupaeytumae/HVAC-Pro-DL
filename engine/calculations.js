@@ -31,9 +31,7 @@ export function calculate(measures, database) {
 
   const superheat = measures.ts - evaporationTemperature;
   const subcooling = condensationTemperature - measures.tl;
-  const deltaT = measures.mode === "cool"
-    ? measures.tr - measures.ti
-    : measures.ti - measures.tr;
+  const deltaT = measures.tr - measures.ti;
   const compressionRatio =
     (measures.hp + database.meta.atmospheric_pressure_bar) /
     (measures.lp + database.meta.atmospheric_pressure_bar);

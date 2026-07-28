@@ -1,5 +1,5 @@
-export function evaluateAirflow(measures, calculations, profile) {
-  const matched = measures.air === "low";
+export function evaluateAirflow(_measures, calculations, profile, evidence) {
+  const matched = evidence.AIRFLOW.state === "LOW";
 
   return {
     id: "AIRFLOW",
@@ -8,6 +8,7 @@ export function evaluateAirflow(measures, calculations, profile) {
     explanation: "Un caudal bajo altera presiones, recalentamiento y salto térmico, por lo que puede simular averías del circuito frigorífico.",
     evidences: matched ? ["Caudal de aire indicado como bajo"] : [],
     steps: [
+      `Repetir ΔT, SH y SC después de corregir el caudal actual`,
       "Revisar filtros, turbina, correas y batería",
       "Confirmar velocidad y sentido del ventilador",
       "Repetir todas las medidas con el caudal normalizado"

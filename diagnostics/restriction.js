@@ -1,7 +1,7 @@
-export function evaluateRestriction(measures, calculations, profile) {
+export function evaluateRestriction(_measures, calculations, profile, evidence) {
   const matched =
-    calculations.sh > profile.tolerances.highSuperheat &&
-    calculations.sc >= profile.tolerances.restrictionSubcooling;
+    evidence.SH.state === "HIGH" &&
+    evidence.SC.value >= profile.tolerances.restrictionSubcooling;
 
   return {
     id: "RESTRICTION",
@@ -12,6 +12,7 @@ export function evaluateRestriction(measures, calculations, profile) {
       ? ["Recalentamiento alto", "El líquido conserva subenfriamiento"]
       : [],
     steps: [
+      `Confirmar SH ${calculations.sh.toFixed(1)} K con SC conservado en ${calculations.sc.toFixed(1)} K`,
       "Medir caída térmica en filtro deshidratador",
       "Comprobar TXV o EXV",
       "Revisar estrangulamientos",

@@ -54,7 +54,9 @@ export function buildEvidence(calculations, profile, measures) {
     },
     AIRFLOW: {
       value: measures.air,
-      state: measures.air === "normal" ? "NORMAL" : "LOW"
+      state: measures.air === "normal"
+        ? "NORMAL"
+        : measures.air === "low" ? "LOW" : "UNKNOWN"
     }
   };
 }

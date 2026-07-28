@@ -1,4 +1,4 @@
-const CACHE_NAME = "hvac-pro-dl-v6";
+const CACHE_NAME = "hvac-pro-dl-v12";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -7,6 +7,7 @@ const APP_SHELL = [
   "./engine/evidence.js",
   "./engine/diagnosis.js",
   "./diagnostics/undercharge.js",
+  "./diagnostics/charge.js",
   "./diagnostics/restriction.js",
   "./diagnostics/airflow.js",
   "./diagnostics/overfeed.js",
@@ -25,7 +26,19 @@ const APP_SHELL = [
 
 self.addEventListener("install", event => {
   self.skipWaiting();
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => Promise.all(
+      APP_SHELL.map(url =>
+        fetch(new Request(url, { cache: "reload" }))
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`No se pudo almacenar ${url}`);
+            }
+            return cache.put(url, response);
+          })
+      )
+    ))
+  );
 });
 
 self.addEventListener("activate", event => {

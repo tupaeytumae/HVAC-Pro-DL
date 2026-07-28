@@ -4,9 +4,13 @@ export function evaluateBalanced(_measures, _calculations, _profile, evidence) {
 
   return {
     id: "BALANCED",
-    name: "Patrón razonablemente equilibrado",
+    name: matched
+      ? "Patrón razonablemente equilibrado"
+      : "Sin patrón concluyente",
     score: 100,
-    explanation: "No aparece un patrón fuerte de falta de carga, restricción o sobrealimentación.",
+    explanation: matched
+      ? "No aparece un patrón fuerte de falta de carga, restricción o sobrealimentación."
+      : "Existen evidencias que requieren revisión, pero no forman un patrón suficiente para atribuir una avería concreta.",
     evidences: [],
     steps: [
       "Comparar intensidad con placa",

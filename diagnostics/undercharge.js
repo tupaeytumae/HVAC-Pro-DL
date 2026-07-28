@@ -1,32 +1,4 @@
-function compatibility(evidence, profile) {
-  const evidences = [];
-  let score = 0;
-  const { tolerances, weights } = profile;
-
-  if (evidence.SH.value >= tolerances.veryHighSuperheat) {
-    score += 35 * weights.sh;
-    evidences.push("Recalentamiento muy alto");
-  } else if (evidence.SH.value >= tolerances.highSuperheat) {
-    score += 25 * weights.sh;
-    evidences.push("Recalentamiento alto");
-  }
-
-  if (evidence.SC.value <= tolerances.veryLowSubcooling) {
-    score += 35 * weights.sc;
-    evidences.push("Subenfriamiento prácticamente nulo");
-  } else if (evidence.SC.value <= tolerances.lowSubcooling) {
-    score += 25 * weights.sc;
-    evidences.push("Subenfriamiento bajo");
-  }
-
-  return {
-    name: "Fuga o carga insuficiente",
-    score: Math.max(0, Math.min(100, score)),
-    evidences
-  };
-}
-
-export function evaluateUndercharge(_measures, _calculations, profile, evidence) {
+export function evaluateUndercharge(_measures, calculations, profile, evidence) {
   const matched =
     evidence.SH.state === "HIGH" &&
     evidence.SC.state === "LOW";
@@ -40,13 +12,13 @@ export function evaluateUndercharge(_measures, _calculations, profile, evidence)
       ? ["Recalentamiento alto", "Subenfriamiento bajo"]
       : [],
     steps: [
+      `Confirmar SH ${calculations.sh.toFixed(1)} K y SC ${calculations.sc.toFixed(1)} K con sondas bien fijadas`,
       "Confirmar caudal de aire",
       "Buscar aceite y comprobar fugas",
       "Realizar prueba de estanqueidad",
       "Vaciar, hacer vacío y cargar por peso"
     ],
     level: "bad",
-    matched,
-    compatibility: compatibility(evidence, profile)
+    matched
   };
 }

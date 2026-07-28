@@ -1,6 +1,7 @@
 import { calculate } from "./calculations.js";
 import { buildEvidence } from "./evidence.js";
 import { getProfile } from "../profiles/index.js";
+import { evaluateCharge } from "../diagnostics/charge.js";
 import { evaluateAirflow } from "../diagnostics/airflow.js";
 import { evaluateUndercharge } from "../diagnostics/undercharge.js";
 import { evaluateRestriction } from "../diagnostics/restriction.js";
@@ -35,14 +36,23 @@ export function diagnose(measures, database, profileName = "unknown") {
   const results = diagnostics
     .map(diagnostic => diagnostic(measures, calculations, profile, evidence))
     .sort((left, right) => right.score - left.score);
-  const undercharge = results.find(result => result.id === "UNDERCHARGE");
   const diagnosis = selectDiagnosis(results);
+  const charge = evaluateCharge(measures, calculations, profile, evidence);
+  const chargeIsConclusive = [
+    "UNDERCHARGE",
+    "OVERCHARGE",
+    "RESTRICTION"
+  ].includes(charge.state);
+  const checks = chargeIsConclusive
+    ? charge.checks
+    : [...new Set([...charge.checks, ...diagnosis.steps])];
 
   return {
     calculations,
     evidence,
     diagnosis,
-    compatibility: undercharge.compatibility,
+    charge,
+    checks,
     results,
     profile
   };

@@ -1,5 +1,6 @@
 const unknownProfile = Object.freeze({
   id: "unknown",
+  chargeMethod: "combined",
   weights: Object.freeze({
     airflow: 1,
     undercharge: 1,

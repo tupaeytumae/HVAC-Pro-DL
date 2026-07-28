@@ -1,5 +1,5 @@
-export function evaluateLowDeltaT(measures, calculations, profile) {
-  const matched = calculations.deltaT < profile.tolerances.lowDeltaT;
+export function evaluateLowDeltaT(_measures, calculations, profile, evidence) {
+  const matched = evidence.DELTA_T.state === "LOW";
 
   return {
     id: "LOW_DELTA_T",
@@ -8,6 +8,7 @@ export function evaluateLowDeltaT(measures, calculations, profile) {
     explanation: "El salto térmico del aire es bajo para una condición estable de funcionamiento.",
     evidences: matched ? ["Salto térmico bajo"] : [],
     steps: [
+      `Confirmar el ΔT medido de ${calculations.deltaT.toFixed(1)} K con sondas en retorno e impulsión`,
       "Revisar filtros, turbina y baterías",
       "Confirmar caudal y temperaturas con instrumento fiable",
       "Medir intensidad y tensión",
