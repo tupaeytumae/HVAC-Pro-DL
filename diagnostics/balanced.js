@@ -1,4 +1,7 @@
-export function evaluateBalanced(measures, calculations, profile) {
+export function evaluateBalanced(_measures, _calculations, _profile, evidence) {
+  const matched = Object.values(evidence)
+    .every(item => item.state === "NORMAL");
+
   return {
     id: "BALANCED",
     name: "Patrón razonablemente equilibrado",
@@ -11,7 +14,7 @@ export function evaluateBalanced(measures, calculations, profile) {
       "Registrar temperatura de descarga",
       "Confirmar estabilidad durante 10–15 minutos"
     ],
-    level: "ok",
-    matched: true
+    level: matched ? "ok" : "warn",
+    matched
   };
 }

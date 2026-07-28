@@ -20,7 +20,11 @@ const unknownProfile = Object.freeze({
     lowSuperheat: 3,
     highSubcooling: 8,
     lowDeltaT: 7,
-    highApproach: 25
+    highDeltaT: 15,
+    lowApproach: 0,
+    highApproach: 25,
+    lowCompressionRatio: 1.2,
+    highCompressionRatio: 5
   })
 });
 

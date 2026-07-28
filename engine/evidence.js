@@ -33,24 +33,28 @@ export function buildEvidence(calculations, profile, measures) {
       state: classify(
         calculations.deltaT,
         tolerances.lowDeltaT,
-        undefined
+        tolerances.highDeltaT
       )
     },
     APPROACH: {
       value: calculations.approach,
       state: classify(
         calculations.approach,
-        undefined,
+        tolerances.lowApproach,
         tolerances.highApproach
       )
     },
     CR: {
       value: calculations.cr,
-      state: "NORMAL"
+      state: classify(
+        calculations.cr,
+        tolerances.lowCompressionRatio,
+        tolerances.highCompressionRatio
+      )
     },
     AIRFLOW: {
       value: measures.air,
-      state: measures.air === "low" ? "LOW" : "NORMAL"
+      state: measures.air === "normal" ? "NORMAL" : "LOW"
     }
   };
 }
