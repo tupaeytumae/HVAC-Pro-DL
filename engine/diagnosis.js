@@ -1,4 +1,5 @@
 import { calculate } from "./calculations.js";
+import { buildEvidence } from "./evidence.js";
 import { getProfile } from "../profiles/index.js";
 import { evaluateAirflow } from "../diagnostics/airflow.js";
 import { evaluateUndercharge } from "../diagnostics/undercharge.js";
@@ -25,13 +26,15 @@ export function diagnose(measures, database, profileName = "unknown") {
   }
 
   const profile = getProfile(profileName);
+  const evidence = buildEvidence(calculations, profile, measures);
   const results = diagnostics
-    .map(diagnostic => diagnostic(measures, calculations, profile))
+    .map(diagnostic => diagnostic(measures, calculations, profile, evidence))
     .sort((left, right) => right.score - left.score);
   const undercharge = results.find(result => result.id === "UNDERCHARGE");
 
   return {
     calculations,
+    evidence,
     diagnosis: results[0],
     compatibility: undercharge.compatibility,
     results,

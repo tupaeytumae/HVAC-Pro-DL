@@ -1,20 +1,20 @@
-function compatibility(calculations, profile) {
+function compatibility(evidence, profile) {
   const evidences = [];
   let score = 0;
   const { tolerances, weights } = profile;
 
-  if (calculations.sh >= tolerances.veryHighSuperheat) {
+  if (evidence.SH.value >= tolerances.veryHighSuperheat) {
     score += 35 * weights.sh;
     evidences.push("Recalentamiento muy alto");
-  } else if (calculations.sh >= tolerances.highSuperheat) {
+  } else if (evidence.SH.value >= tolerances.highSuperheat) {
     score += 25 * weights.sh;
     evidences.push("Recalentamiento alto");
   }
 
-  if (calculations.sc <= tolerances.veryLowSubcooling) {
+  if (evidence.SC.value <= tolerances.veryLowSubcooling) {
     score += 35 * weights.sc;
     evidences.push("Subenfriamiento prácticamente nulo");
-  } else if (calculations.sc <= tolerances.lowSubcooling) {
+  } else if (evidence.SC.value <= tolerances.lowSubcooling) {
     score += 25 * weights.sc;
     evidences.push("Subenfriamiento bajo");
   }
@@ -26,10 +26,10 @@ function compatibility(calculations, profile) {
   };
 }
 
-export function evaluateUndercharge(measures, calculations, profile) {
+export function evaluateUndercharge(_measures, _calculations, profile, evidence) {
   const matched =
-    calculations.sh > profile.tolerances.highSuperheat &&
-    calculations.sc < profile.tolerances.lowSubcooling;
+    evidence.SH.state === "HIGH" &&
+    evidence.SC.state === "LOW";
 
   return {
     id: "UNDERCHARGE",
@@ -47,6 +47,6 @@ export function evaluateUndercharge(measures, calculations, profile) {
     ],
     level: "bad",
     matched,
-    compatibility: compatibility(calculations, profile)
+    compatibility: compatibility(evidence, profile)
   };
 }
