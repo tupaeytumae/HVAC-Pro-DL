@@ -4,7 +4,9 @@ Aplicación web progresiva para apoyo al diagnóstico HVAC mediante tablas presi
 
 ## Archivos incluidos
 
-- `index.html`: interfaz y presentación de resultados.
+- `index.html`: estructura visible de la interfaz.
+- `styles/`: estilos visuales de la aplicación.
+- `ui/`: formulario, etiquetas, presentación de resultados y coordinación de la interfaz.
 - `engine/`: cálculos, evidencias y coordinación del diagnóstico.
 - `diagnostics/`: un módulo independiente por patrón diagnóstico.
 - `profiles/`: parámetros según el dispositivo de expansión.

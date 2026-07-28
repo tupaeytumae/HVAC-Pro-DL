@@ -11,66 +11,8 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <link rel="icon" href="./icon-192.png">
+  <link rel="stylesheet" href="./styles/app.css">
   <title>HVAC Pro · D.L.</title>
-  <style>
-    :root{
-      --bg:#eef2f7;--card:#fff;--text:#111827;--muted:#667085;--line:#d0d5dd;
-      --blue:#155eef;--blue2:#004eeb;--ok:#027a48;--warn:#b54708;--bad:#b42318;
-      --shadow:0 8px 30px rgba(16,24,40,.08)
-    }
-    *{box-sizing:border-box}
-    html{background:var(--bg)}
-    body{
-      margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-      background:linear-gradient(180deg,#eaf0fb 0,#f7f8fa 240px);color:var(--text)
-    }
-    .app{max-width:780px;margin:auto;padding:calc(16px + env(safe-area-inset-top)) 12px calc(34px + env(safe-area-inset-bottom))}
-    header{padding:8px 4px 10px}
-    h1{font-size:27px;line-height:1.1;margin:0 0 6px}
-    h2{font-size:19px;margin:0}
-    h3{font-size:16px;margin:20px 0 8px}
-    .sub,.note{font-size:12px;line-height:1.5;color:var(--muted)}
-    .card{background:var(--card);border:1px solid rgba(208,213,221,.7);border-radius:20px;padding:16px;margin:12px 0;box-shadow:var(--shadow)}
-    .grid,.metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    label{font-size:13px;font-weight:700;color:#344054}
-    input,select,button{font:inherit}
-    input,select{
-      width:100%;margin-top:6px;padding:13px;border:1px solid var(--line);border-radius:12px;
-      background:#fff;color:var(--text);font-size:16px;outline:none
-    }
-    input:focus,select:focus{border-color:#84adff;box-shadow:0 0 0 4px rgba(21,94,239,.12)}
-    button{border:0;border-radius:14px;padding:14px 16px;font-weight:800;cursor:pointer}
-    button:disabled{opacity:.48;cursor:not-allowed}
-    .primary{width:100%;background:linear-gradient(180deg,var(--blue),var(--blue2));color:#fff;font-size:17px}
-    .secondary{width:100%;background:#eef2f6;color:#1d2939}
-    .row{display:flex;gap:10px;justify-content:space-between;align-items:center}
-    .metric{border:1px solid #eaecf0;border-radius:14px;padding:12px;background:#fcfcfd}
-    .metric small{display:block;color:var(--muted)}
-    .metric strong{display:block;font-size:21px;margin-top:4px}
-    .badge{display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800}
-    .ok{background:#ecfdf3;color:var(--ok)}.warn{background:#fffaeb;color:var(--warn)}.bad{background:#fef3f2;color:var(--bad)}
-    .evidence-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    .evidence{border:1px solid #eaecf0;border-radius:12px;padding:10px;background:#fcfcfd}
-    .evidence small{display:block;color:var(--muted);margin-bottom:5px}
-    .evidence-value{font-weight:800;margin-right:6px}
-    .state-normal{color:var(--ok)}
-    .state-low,.state-high,.state-unknown{color:var(--warn)}
-    .diagnostic-list{display:grid;gap:10px}
-    .diagnostic-item{border:1px solid #eaecf0;border-radius:14px;padding:12px;background:#fcfcfd}
-    .diagnostic-item p{margin:7px 0 0}
-    .diagnostic-item ul{margin:7px 0 0}
-    .field-note{display:block;margin-top:6px;color:var(--blue);font-weight:600;line-height:1.35}
-    #result{display:none}
-    #setup{display:none;border-left:5px solid var(--warn)}
-    ul{padding-left:20px}li{margin:8px 0}
-    code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
-    .footer{text-align:center;margin-top:18px}
-    @media(max-width:560px){
-      .grid,.metrics{grid-template-columns:1fr 1fr}
-      .evidence-grid{grid-template-columns:1fr 1fr}
-      .metric strong{font-size:19px}
-    }
-  </style>
 </head>
 <body>
 <div class="app">
@@ -102,11 +44,11 @@
       </label>
       <label>Baja
         <input id="lp" type="number" step="0.01" inputmode="decimal" placeholder="bar(g)">
-        <small id="lpSat" class="field-note">Tª teórica dew: —</small>
+        <small id="lpSat" class="field-note">Dew: — · Bubble: — · SH usa Dew</small>
       </label>
       <label>Alta
         <input id="hp" type="number" step="0.01" inputmode="decimal" placeholder="bar(g)">
-        <small id="hpSat" class="field-note">Tª teórica bubble: —</small>
+        <small id="hpSat" class="field-note">Bubble: — · Dew: — · SC usa Bubble</small>
       </label>
       <label>Tª aspiración
         <input id="ts" type="number" step="0.1" inputmode="decimal" placeholder="°C">
@@ -163,6 +105,9 @@
     <div id="profile" class="note"></div>
     <div id="chargeMethod" class="note" style="margin-top:4px"></div>
     <div id="evidence" class="evidence-grid" style="margin-top:10px"></div>
+    <div class="note evidence-disclaimer">
+      Rangos orientativos del perfil. Prevalecen los valores y el método de comprobación del fabricante.
+    </div>
     <h3>Patrones evaluados</h3>
     <div id="diagnostics" class="diagnostic-list"></div>
     <h3>Comprobar ahora</h3>
@@ -179,262 +124,6 @@
 </div>
 
 <script src="./pt_data.js"></script>
-<script type="module">
-  import { diagnose } from "./engine/diagnosis.js";
-  import { temperatureAtPressure } from "./engine/calculations.js";
-
-  const $ = id => document.getElementById(id);
-  const DB = window.PT_DATABASE || null;
-
-  function initializeDatabase(){
-    const valid = DB && DB.meta && DB.fluids && Object.keys(DB.fluids).length > 0;
-    if(!valid){
-      $("source").textContent = "Tablas P‑T pendientes de generación";
-      $("setup").style.display = "block";
-      return;
-    }
-
-    $("ref").innerHTML = "";
-    Object.keys(DB.fluids).forEach(name => {
-      const option = document.createElement("option");
-      option.value = option.textContent = name;
-      $("ref").appendChild(option);
-    });
-
-    $("ref").disabled = false;
-    $("diagnose").disabled = false;
-    $("ref").value = DB.fluids.R407C ? "R407C" : Object.keys(DB.fluids)[0];
-    $("source").textContent =
-      `P‑T: ${DB.meta.engine} ${DB.meta.version} · datos locales offline`;
-
-    $("technicalNote").textContent =
-      `Presiones en bar(g). Las tablas se generaron desde presión absoluta usando ` +
-      `${DB.meta.atmospheric_pressure_bar} bar de referencia. Dew = Q1; bubble = Q0. ` +
-      `Resolución térmica: ${DB.meta.temperature_step_c} °C. Diagnóstico orientativo.`;
-    updatePressureTemperatures();
-  }
-
-  function num(id){
-    const raw = $(id).value.trim().replace(",", ".");
-    const value = Number.parseFloat(raw);
-    return Number.isFinite(value) ? value : null;
-  }
-
-  function output(id,value,unit="",digits=1){
-    $(id).textContent = Number.isFinite(value) ? `${value.toFixed(digits)} ${unit}`.trim() : "—";
-  }
-
-  function updatePressureTemperatures(){
-    if(!DB || !DB.fluids || !DB.fluids[$("ref").value]) return;
-    const table = DB.fluids[$("ref").value];
-    const lowPressure = num("lp");
-    const highPressure = num("hp");
-    const lowTemperature = lowPressure === null
-      ? null
-      : temperatureAtPressure(table.dew,lowPressure);
-    const highTemperature = highPressure === null
-      ? null
-      : temperatureAtPressure(table.bubble,highPressure);
-
-    $("lpSat").textContent = lowPressure === null
-      ? "Tª teórica dew: —"
-      : Number.isFinite(lowTemperature)
-        ? `Tª teórica dew: ${lowTemperature.toFixed(1)} °C`
-        : "Tª teórica dew: fuera de tabla";
-    $("hpSat").textContent = highPressure === null
-      ? "Tª teórica bubble: —"
-      : Number.isFinite(highTemperature)
-        ? `Tª teórica bubble: ${highTemperature.toFixed(1)} °C`
-        : "Tª teórica bubble: fuera de tabla";
-  }
-
-  const evidenceLabels = {
-    SH: ["Recalentamiento", "K"],
-    SC: ["Subenfriamiento", "K"],
-    DELTA_T: ["Salto térmico", "K"],
-    APPROACH: ["Aproximación", "K"],
-    CR: ["Relación de compresión", ""],
-    AIRFLOW: ["Caudal de aire", ""]
-  };
-
-  const stateLabels = {
-    LOW: "BAJO",
-    NORMAL: "NORMAL",
-    HIGH: "ALTO",
-    UNKNOWN: "NO COMPROBADO"
-  };
-
-  const profileLabels = {
-    unknown: "Desconocido",
-    capillary: "Capilar",
-    txv: "TXV",
-    eev: "EEV"
-  };
-
-  const chargeMethodLabels = {
-    combined: "Sin dispositivo confirmado: contrasta conjuntamente SH y SC con los datos del fabricante.",
-    superheat: "Capilar: prioriza el SH objetivo del fabricante y utiliza el SC como evidencia complementaria.",
-    subcooling: "TXV: verifica la carga principalmente mediante el SC objetivo del fabricante y comprueba el control de SH.",
-    "controlled-superheat": "EEV: verifica el SC objetivo y confirma que sensores, controlador y válvula mantienen el SH."
-  };
-
-  function evidenceValue(key,item){
-    if(key === "AIRFLOW"){
-      return item.value === "normal" ? "Normal" :
-        item.value === "low" ? "Bajo" : "No comprobado";
-    }
-    const digits = key === "CR" ? 2 : 1;
-    const unit = evidenceLabels[key][1];
-    return `${item.value.toFixed(digits)}${unit ? ` ${unit}` : ""}`;
-  }
-
-  function renderEvidence(evidence,profile){
-    $("profile").textContent =
-      `Perfil aplicado: ${profileLabels[profile.id] || profile.id}`;
-    $("chargeMethod").textContent = chargeMethodLabels[profile.chargeMethod];
-    $("evidence").innerHTML = Object.entries(evidence).map(([key,item]) => `
-      <div class="evidence">
-        <small>${evidenceLabels[key][0]}</small>
-        <span class="evidence-value">${evidenceValue(key,item)}</span>
-        <span class="badge state-${item.state.toLowerCase()}">${stateLabels[item.state]}</span>
-      </div>
-    `).join("");
-  }
-
-  function renderDiagnostics(results){
-    $("diagnostics").innerHTML = results.map(item => `
-      <div class="diagnostic-item">
-        <div class="row">
-          <strong>${item.name}</strong>
-          <span class="badge ${item.matched ? item.level : "warn"}">
-            ${item.matched ? "COINCIDE" : "DESCARTADO"}
-          </span>
-        </div>
-        <p class="note">${
-          item.matched
-            ? item.explanation
-            : "No coincide con la combinación actual de evidencias."
-        }</p>
-        ${item.evidences.length
-          ? `<ul class="note">${item.evidences.map(value => `<li>${value}</li>`).join("")}</ul>`
-          : ""}
-      </div>
-    `).join("");
-  }
-
-  const chargeLabels = {
-    AIRFLOW_FIRST: ["CAUDAL PRIMERO", "warn"],
-    UNDERCHARGE: ["FALTA", "bad"],
-    OVERCHARGE: ["EXCESO", "bad"],
-    RESTRICTION: ["RESTRICCIÓN", "warn"],
-    NORMAL: ["SIN PATRÓN", "ok"],
-    INCONCLUSIVE: ["NO CONCLUYENTE", "warn"]
-  };
-
-  function renderCharge(charge){
-    const [label,level] = chargeLabels[charge.state];
-    $("chargeStatus").textContent = label;
-    $("chargeStatus").className = `badge ${level}`;
-    $("chargeTitle").textContent = charge.title;
-    $("chargeExplanation").textContent = charge.explanation;
-    $("chargeEvidence").innerHTML =
-      charge.evidences.map(value => `<li>${value}</li>`).join("");
-  }
-
-  function run(){
-    if(!DB || !DB.fluids) return;
-
-    const ref = $("ref").value;
-    const profileName = $("expansion").value;
-    const air = $("air").value;
-    const lp = num("lp"), hp = num("hp"), ts = num("ts"), tl = num("tl");
-    const tr = num("tr"), ti = num("ti"), to = num("to");
-
-    if([lp,hp,ts,tl,tr,ti,to].some(value => value === null)){
-      alert("Completa todos los campos.");
-      return;
-    }
-    if(lp <= -DB.meta.atmospheric_pressure_bar){
-      alert("La presión de baja está por debajo del límite físico admitido.");
-      return;
-    }
-    if(hp <= lp){
-      alert("La alta debe ser mayor que la baja.");
-      return;
-    }
-
-    const result = diagnose({
-      ref,
-      air,
-      lp,
-      hp,
-      ts,
-      tl,
-      tr,
-      ti,
-      to
-    }, DB, profileName);
-
-    if(result === null){
-      alert(`Presión fuera del rango de tabla disponible para ${ref}.`);
-      return;
-    }
-
-    const { tev, tc, sh, sc, deltaT: dt, cr } = result.calculations;
-    const {
-      name: diagnosis,
-      explanation: reason,
-      level
-    } = result.diagnosis;
-
-    output("tev",tev,"°C");
-    output("tc",tc,"°C");
-    output("sh",sh,"K");
-    output("sc",sc,"K");
-    output("dt",dt,"K");
-    output("cr",cr,"",2);
-
-    $("diag").textContent = diagnosis;
-    $("why").textContent = reason;
-    renderCharge(result.charge);
-    renderEvidence(result.evidence,result.profile);
-    renderDiagnostics(result.results);
-    $("steps").innerHTML = result.checks.map(step => `<li>${step}</li>`).join("");
-    $("status").textContent = level === "ok" ? "ESTABLE" : level === "warn" ? "REVISAR" : "PRIORIDAD";
-    $("status").className = `badge ${level}`;
-    $("result").style.display = "block";
-
-    window.summary =
-      `HVAC ${ref} · CoolProp ${DB.meta.version}\n` +
-      `Baja ${lp} bar(g) · Alta ${hp} bar(g)\n` +
-      `Evap. dew ${tev.toFixed(1)} °C · Cond. bubble ${tc.toFixed(1)} °C\n` +
-      `SH ${sh.toFixed(1)} K · SC ${sc.toFixed(1)} K · ΔT ${dt.toFixed(1)} K\n` +
-      `Relación de compresión ${cr.toFixed(2)}\n` +
-      `Lectura de carga: ${result.charge.title}\n` +
-      `Diagnóstico orientativo: ${diagnosis}`;
-
-    $("result").scrollIntoView({behavior:"smooth"});
-  }
-
-  $("diagnose").addEventListener("click",run);
-  $("lp").addEventListener("input",updatePressureTemperatures);
-  $("hp").addEventListener("input",updatePressureTemperatures);
-  $("ref").addEventListener("change",updatePressureTemperatures);
-
-  $("copy").addEventListener("click", async () => {
-    try{
-      await navigator.clipboard.writeText(window.summary || "");
-      alert("Resumen copiado.");
-    }catch(error){
-      alert(window.summary || "No hay resumen.");
-    }
-  });
-
-  initializeDatabase();
-
-  if("serviceWorker" in navigator){
-    window.addEventListener("load",() => navigator.serviceWorker.register("./sw.js"));
-  }
-</script>
+<script type="module" src="./ui/app.js"></script>
 </body>
 </html>

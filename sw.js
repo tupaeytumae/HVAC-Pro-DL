@@ -1,8 +1,13 @@
-const CACHE_NAME = "hvac-pro-dl-v12";
+const CACHE_NAME = "hvac-pro-dl-v16";
 const APP_SHELL = [
   "./",
   "./index.html",
+  "./styles/app.css",
   "./pt_data.js",
+  "./ui/app.js",
+  "./ui/form.js",
+  "./ui/render.js",
+  "./ui/labels.js",
   "./engine/calculations.js",
   "./engine/evidence.js",
   "./engine/diagnosis.js",
