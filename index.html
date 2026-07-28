@@ -146,8 +146,9 @@
 </div>
 
 <script src="./pt_data.js"></script>
-<script src="./diagnosis.js"></script>
-<script>
+<script type="module">
+  import { diagnose } from "./engine/diagnosis.js";
+
   const $ = id => document.getElementById(id);
   const DB = window.PT_DATABASE || null;
 
@@ -184,21 +185,6 @@
     return Number.isFinite(value) ? value : null;
   }
 
-  function tempAtPressure(points, pressure){
-    let low = 0, high = points.length - 1;
-    if(pressure < points[0][0] || pressure > points[high][0]) return null;
-
-    while(high - low > 1){
-      const middle = (low + high) >> 1;
-      if(points[middle][0] <= pressure) low = middle;
-      else high = middle;
-    }
-
-    const [p1,t1] = points[low];
-    const [p2,t2] = points[high];
-    return t1 + (pressure - p1) * (t2 - t1) / (p2 - p1);
-  }
-
   function output(id,value,unit="",digits=1){
     $(id).textContent = Number.isFinite(value) ? `${value.toFixed(digits)} ${unit}`.trim() : "—";
   }
@@ -225,104 +211,32 @@
       return;
     }
 
-    const table = DB.fluids[ref];
-    const tev = tempAtPressure(table.dew, lp);
-    const tc = tempAtPressure(table.bubble, hp);
+    const result = diagnose({
+      ref,
+      mode,
+      air,
+      lp,
+      hp,
+      ts,
+      tl,
+      tr,
+      ti,
+      to
+    }, DB);
 
-    if(tev === null || tc === null){
+    if(result === null){
       alert(`Presión fuera del rango de tabla disponible para ${ref}.`);
       return;
     }
 
-    const sh = ts - tev;
-    const sc = tc - tl;
-    const dt = mode === "cool" ? tr - ti : ti - tr;
-    const cr = (hp + DB.meta.atmospheric_pressure_bar) /
-               (lp + DB.meta.atmospheric_pressure_bar);
-    const approach = tc - to;
-
-    const diagnosisResults = Diagnostician.evaluate({
-      sh,
-      sc,
-      deltaT: dt,
-      evapDelta: tr - tev,
-      air
-    });
-
-    const bestDiagnosis = diagnosisResults[0];
-
-    let diagnosis, reason, steps, level;
-
-    if(air === "low"){
-      diagnosis = "Primero debe corregirse el caudal de aire";
-      reason = "Un caudal bajo altera presiones, recalentamiento y salto térmico, por lo que puede simular averías del circuito frigorífico.";
-      steps = [
-        "Revisar filtros, turbina, correas y batería",
-        "Confirmar velocidad y sentido del ventilador",
-        "Repetir todas las medidas con el caudal normalizado"
-      ];
-      level = "warn";
-    } else if(sh > 12 && sc < 3){
-      diagnosis = "Patrón compatible con carga insuficiente o fuga";
-      reason = "El recalentamiento alto y el subenfriamiento bajo indican alimentación reducida del evaporador.";
-      steps = [
-        "Confirmar caudal de aire",
-        "Buscar aceite y comprobar fugas",
-        "Realizar prueba de estanqueidad",
-        "Vaciar, hacer vacío y cargar por peso"
-      ];
-      level = "bad";
-    } else if(sh > 12 && sc >= 5){
-      diagnosis = "Posible restricción o expansión insuficiente";
-      reason = "Hay recalentamiento alto, pero el líquido conserva subenfriamiento.";
-      steps = [
-        "Medir caída térmica en filtro deshidratador",
-        "Comprobar TXV o EXV",
-        "Revisar estrangulamientos",
-        "Descartar humedad o hielo"
-      ];
-      level = "warn";
-    } else if(sh < 3 && sc > 8){
-      diagnosis = "Posible sobrealimentación o exceso de refrigerante";
-      reason = "El recalentamiento bajo junto con subenfriamiento alto aumenta el riesgo de retorno de líquido.";
-      steps = [
-        "Confirmar caudal de aire",
-        "Comprobar carga por peso",
-        "Revisar control de expansión",
-        "Vigilar retorno de líquido al compresor"
-      ];
-      level = "bad";
-    } else if(dt < 7){
-      diagnosis = "Rendimiento térmico insuficiente";
-      reason = "El salto térmico del aire es bajo para una condición estable de funcionamiento.";
-      steps = [
-        "Revisar filtros, turbina y baterías",
-        "Confirmar caudal y temperaturas con instrumento fiable",
-        "Medir intensidad y tensión",
-        "Repetir medidas tras 10–15 minutos"
-      ];
-      level = "warn";
-    } else if(approach > 25){
-      diagnosis = "Condensación elevada respecto al ambiente";
-      reason = "La diferencia entre condensación y temperatura exterior es alta.";
-      steps = [
-        "Limpiar batería exterior",
-        "Comprobar ventiladores y recirculación",
-        "Verificar sobrecarga o gases no condensables",
-        "Medir descarga e intensidad"
-      ];
-      level = "warn";
-    } else {
-      diagnosis = "Patrón razonablemente equilibrado";
-      reason = "No aparece un patrón fuerte de falta de carga, restricción o sobrealimentación.";
-      steps = [
-        "Comparar intensidad con placa",
-        "Comprobar limpieza de baterías",
-        "Registrar temperatura de descarga",
-        "Confirmar estabilidad durante 10–15 minutos"
-      ];
-      level = "ok";
-    }
+    const { tev, tc, sh, sc, deltaT: dt, cr } = result.calculations;
+    const {
+      name: diagnosis,
+      explanation: reason,
+      steps,
+      level
+    } = result.diagnosis;
+    const compatibility = result.compatibility;
 
     output("tev",tev,"°C");
     output("tc",tc,"°C");
@@ -332,9 +246,9 @@
     output("cr",cr,"",2);
 
     $("compatibility").innerHTML =
-      "<strong>"+bestDiagnosis.name+"</strong><br>" +
-      "Compatibilidad estimada: <strong>"+bestDiagnosis.score+"%</strong><br>" +
-      bestDiagnosis.reasons.join("<br>");
+      "<strong>"+compatibility.name+"</strong><br>" +
+      "Compatibilidad estimada: <strong>"+compatibility.score+"%</strong><br>" +
+      compatibility.evidences.join("<br>");
 
     $("diag").textContent = diagnosis;
     $("why").textContent = reason;
